@@ -47,6 +47,8 @@ var xScale = d3.scaleLinear()
     .domain([0, 5]) // input
     .range([0, width]); // output
 
+var ticks = xScale.ticks(5);
+
 // Y scale = Frequency of how often the characters interact
 var yScale = d3.scaleLinear()
     .domain([0, 30]) // input 
