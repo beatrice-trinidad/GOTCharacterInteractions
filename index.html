@@ -1,435 +1,404 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-<style>
-	@import url(http://fonts.googleapis.com/css?family=Source+Code+Pro:400,600);
-	
-	body {
-		overflow:hidden;
-		margin:0;
-		font-family: "Source Code Pro", Consolas, monaco, monospace; line-height: 110%; font-size: 16px; 
-	}
 
-	text {
-		font-family: sans-serif;
-		pointer-events: none;
-	}
-	h1 { font-size: 28px; margin: 10px 0; text-transform: uppercase; font-weight: normal; text-align: center;}
-	h2, h3 { font-size: 14px; margin: 5px 0 ; font-weight: normal; text-align: center;}
-	p { font-size: 12px;}
+<link rel="stylesheet" href="bootstrap-4.3.1/dist/css/bootstrap.min.css" >
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-</style>
-
-<body>
-	<header>
-		<div class="row">
-			<div class="col-3">
-				<h1>Game of Thrones TV Series Characters Interaction</h1>
-				<h2>Characters Interaction</h2>
-				<h3></h3>
-			</div>
-		
-			<div class="col-9">
-				<p>
-					This visualization shows the character interactions between characters in the television series Game of Thrones from Seasons 1 to 5. 
-					As characters are traveling a lot in the lands of Westeros and Essos, their relationships evolve over time and some characters that are close at the beginning are not in a relationship at all later in the show. 
-				</p>
-				<p>
-					Currently, you can read this visualization by seeing the characters that interact with others the most. In the future, we plan to have this visualization work by clicking on 2-3 characters of the web, and afterwards it will show you a line graph of how often they interact throughout each season.
-				</p>
-			</div>
-	
-		</div>
-	</header>
-
-
-
-<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="Jquery-UI/js/jquery-1.7.2.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.24.0/d3-legend.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script>
-var w = window.innerWidth;
-var h = window.innerHeight;
+  $(document).ready(function(){
+    $('.checkSeason').prop('checked', true);
 
-var keyc = true, keys = true, keyt = true, keyr = true, keyx = true, keyd = true, keyl = true, keym = true, keyh = true, key1 = true, key2 = true, key3 = true, key0 = true
+    loadChart();
 
-var focus_node = null, highlight_node = null;
+    $("#charFilter").on("keyup", function() {
+      var txtName = d3.select("#charFilter").node().value;
+      var text = d3.selectAll(".text");
+      var node = d3.selectAll(".img");
+      if (txtName != "") {
+        var splitName = txtName.split(' ');
+        txtName = splitName[0];
+        text.style("opacity", function(d) {return d.firstname.match(txtName) || d.lastname.match(txtName) ? "1" : "0"});
+        text.style("stroke", function(d) {return d.firstname.match(txtName) || d.lastname.match(txtName) ? "#046306" : ""; });  
+        node.attr("width", function(d) {return d.firstname.match(txtName) || d.lastname.match(txtName) ? "100" : ""; });
+        node.attr("height", function(d) {return d.firstname.match(txtName) || d.lastname.match(txtName) ? "100" : ""; });
+      }
+      else {
+        updateChart();
+      }
+    });  
+  })
 
-var text_center = false;
-var outline = false;
 
-var min_score = 0;
-var max_score = 1;
 
-var color = d3.scale.linear()
-  .domain([min_score, (min_score+max_score)/2, max_score])
-  .range(["lime", "yellow", "red"]);
-
-var highlight_color = "red";
-var highlight_trans = 0.1;
-  
-var size = d3.scale.pow().exponent(1)
-  .domain([1,100])
-  .range([8,24]);
-	
-var force = d3.layout.force()
-  .linkDistance(300)
-  .charge(-1800)
-  .size([w,h]);
-
-  var drag = force.drag()
-	.on("dragstart", dragstart);
-
-var default_node_color = "#ccc";
-//var default_node_color = "rgb(3,190,100)";
-var default_link_color = "#888";
-var nominal_base_node_size = 8;
-var nominal_text_size = 10;
-var max_text_size = 24;
-var nominal_stroke = 1.5;
-var max_stroke = 4.5;
-var max_base_node_size = 36;
-var min_zoom = 0.1;
-var max_zoom = 7;
-var svg = d3.select("body").append("svg");
-var zoom = d3.behavior.zoom().scaleExtent([min_zoom,max_zoom])
-var g = svg.append("g");
-svg.style("cursor","move");
-
-d3.json("data.json", function(error, graph) {
-
-var linkedByIndex = {};
-    graph.links.forEach(function(d) {
-		linkedByIndex[d.source + "," + d.target] = true;
-    });
-
-	function isConnected(a, b) {
-        return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+  function checkDominance(inf1, inf2, inf3, inf4, inf5){
+    let influence = parseInt(0);
+    let maxInfluence = 0;
+    if ($('#checkseason-1').is(":checked")) {
+      influence += parseInt(inf1);
+      maxInfluence = 57;
+    }
+    if ($('#checkseason-2').is(":checked")) {
+      influence += parseInt(inf2);
+      maxInfluence += 37;
+    }
+    if ($('#checkseason-3').is(":checked")) {
+      influence += parseInt(inf3);
+      maxInfluence += 22;
+    }
+    if ($('#checkseason-4').is(":checked")) {
+      influence += parseInt(inf4);
+      maxInfluence += 29;
+    }
+    if ($('#checkseason-5').is(":checked")) {
+      influence += parseInt(inf5);
+      maxInfluence += 27;
     }
 
-	function hasConnections(a) {
-		for (var property in linkedByIndex) {
-				s = property.split(",");
-				if ((s[0] == a.index || s[1] == a.index) && linkedByIndex[property]) 					return true;
-		}
-	return false;
-	}
-	
-  force
-    .nodes(graph.nodes)
-    .links(graph.links)
-	.gravity(4)
-    .start();
+    influence < 10 ? influence = 10 : influence = influence/maxInfluence*140;
+    return influence;
+  }
 
-	var tocolor = "fill";
-	var towhite = "stroke";
-	if (outline) {
-		tocolor = "stroke"
-		towhite = "fill"
-	}
+  function checkFrequency(fre1, fre2, fre3, fre4, fre5){
+    let frequency = 0;
+    let maxFrequency = 0;
 
-	var link = g.selectAll(".link")
-    .data(graph.links)
-    .enter().append("line")
-    .attr("class", "link")
-	.style("stroke-width", function(d){ return d.weight/2;})
-	.style("stroke", function(d) { 
-	if (isNumber(d.score) && d.score>=0) return color(d.score);
-	else return default_link_color; })
+    if ($('#checkseason-1').is(":checked")) {
+      frequency += parseInt(fre1);
+      maxFrequency = 14;
+    }
+    if ($('#checkseason-2').is(":checked")) {
+      frequency += parseInt(fre2);
+      maxFrequency += 10;
+    }
+    if ($('#checkseason-3').is(":checked")) {
+      frequency += parseInt(fre3);
+      maxFrequency += 12;
+    }
+    if ($('#checkseason-4').is(":checked")) {
+      frequency += parseInt(fre4);
+      maxFrequency += 12;
+    }
+    if ($('#checkseason-5').is(":checked")) {
+      frequency += parseInt(fre5);
+      maxFrequency += 12;
+    }
 
-	var node = g.selectAll(".node")
-    .data(graph.nodes)
-    .enter().append("g")
-    .attr("class", "node")
-	
-    .call(force.drag)
+    frequency = frequency/maxFrequency*20;
+    return frequency;
+  }
 
-	
-  var circle = node.append("path")
-	.attr("d", d3.svg.symbol()
-	.size(function(d) { return d.influence<10 ? 10 : d.influence; }))
+</script>
 
-	.style(tocolor, function(d) { 
-	if (isNumber(d.score) && d.score>=0) return color(d.score);
-	else return default_node_color; })
-	//.attr("r", function(d) { return size(d.size)||nominal_base_node_size; })
-	.style("stroke-width", nominal_stroke)
-	.style(towhite, "white");
-	  
-	// Append images
-	var images = node.append("svg:image")
-        .attr("xlink:href",  function(d) { return d.img;})
-        .attr("x", function(d) { return -25;})
-        .attr("y", function(d) { return -25;})
-		.attr("height", function(d){ return d.influence<10 ? 10 : d.influence;})
-		.attr("width", function(d){ return d.influence<10 ? 10 : d.influence;});
-				
-  var text = g.selectAll(".text")
-	.data(graph.nodes)
-	.enter().append("text")
-	.attr("dy", "-50")
-	.style("opacity", "0.1")
-	.style("font-size", nominal_text_size + "px")
+<body>
+  <div class="row">
+    <div class="col-3">
+        <h1>Game of Thrones TV Series Characters Interaction</h1>
+        <h2>Characters Interaction</h2>
+    </div>
 
-	if (text_center)
-	text.text(function(d) { return d.firstname + " " + d.lastname; })
-	.style("text-anchor", "middle");
-	else 
-	text.attr("dx", function(d) {return (size(d.size)||nominal_base_node_size);})
-	.text(function(d) { return '\u2002'+d.firstname + " " +d.lastname; });
+    <div class="col-9">
+        <p>
+            This visualization shows the character interactions between characters in the television series Game of Thrones from Seasons 1 to 5. 
+            As characters are traveling a lot in the lands of Westeros and Essos, their relationships evolve over time and some characters that are close at the beginning are not in a relationship at all later in the show. 
+        </p>
+        <p>
+            Currently, you can read this visualization by seeing the characters that interact with others the most. In the future, we plan to have this visualization work by clicking on 2-3 characters of the web, and afterwards it will show you a line graph of how often they interact throughout each season.
+        </p>
+    </div>
+  </div>
+  <div class="row">
+      <div class="col-3"style="padding:80px 50px 0px 30px">
+        <legend>Selected Character</legend>
+        <div id="detail" class="alert alert-info"></div>
 
-	node
-	.on("mouseover", function(d) {set_highlight(d);})
-	.on("mousedown", function(d) {
-			d3.event.stopPropagation();
-			focus_node = d;
-			set_focus(d)
-			if (highlight_node === null) set_highlight(d)
-		})
-	.on("mouseout", function(d) {exit_highlight();});
+        <br><br>
 
-	d3.select(window).on("mouseup",  
-		function() {
-		if (focus_node!==null)
-		{
-			focus_node = null;
-			if (highlight_trans<1)
-			{
-				circle.style("opacity", 1);
-	  			//text.style("opacity", 1);
-	 			link.style("opacity", 1);
-			}
-		}
-		if (highlight_node === null) exit_highlight();
-		});
+        <legend>Search: </legend>
+        <input id="charFilter" type="text" placeholder="... ">
 
-function exit_highlight()
-{
-		highlight_node = null;
-	if (focus_node===null)
-	{
-		svg.style("cursor","move");
-		if (highlight_color!="white")
-	{
-		images.style("opacity", "1");
-		circle.style(towhite, "white");
-		text.style("font-weight", "normal");
-		text.style("opacity", "0");
-		link.style("stroke", function(o) {return (isNumber(o.score) && o.score>=0)?color(o.score):default_link_color});
- }
-			
-	}
-}
+        <br><br><br>
+        
+        <fieldset class="widget" >
+          <legend>Filter: </legend>
+          <label for="checkseason-1">Season 1</label>
+          <input type="checkbox" id="checkseason-1" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-2">Season 2</label>
+          <input type="checkbox" id="checkseason-2" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-3">Season 3</label>
+          <input type="checkbox" id="checkseason-3" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-4">Season 4</label>
+          <input type="checkbox" id="checkseason-4" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-5">Season 5</label>
+          <input type="checkbox" id="checkseason-5" class="checkSeason" onclick="updateChart()">
+        </fieldset>
 
-function set_focus(d)
-{	
-	if (highlight_trans<1)  {
-		images.style("opacity", function(o) {
-			return isConnected(d, o) ? 1 : highlight_trans;
-		});
+        <br><br>
+        <button onClick = "location.reload();">Reset All</button>
+      </div>
+      <div id="viz" class="col-9">
+        <svg width="960" height="690"></svg>
+      </div>
+  </div>
+</body>
 
-		circle.style("opacity", function(o) {
-			return isConnected(d, o) ? 1 : highlight_trans;
-		});
+<script>
 
-		text.style("opacity", function(o) {
-			return isConnected(d, o) ? 1 : highlight_trans;
-		});
-		
-		link.style("opacity", function(o) {
-			return o.source.index == d.index || o.target.index == d.index ? 1 : highlight_trans;
-		});		
-	}
-}
+var color = d3.scaleOrdinal(d3.schemeSet3);
+color(0);
+  color(1);
+  color(2);
+  color(3);
+  color(4);
+  color(5);
+  color(6);
+  color(7);
+  color(8);
+  color(9);
+  color(10);
+  
 
+var tooltip = d3.select("body")
+	.append("div")
+	.attr("class", "tooltip")
+	.style("opacity", 0);
+  
 
-function set_highlight(d)
-{
-	svg.style("cursor","pointer");
-	if (focus_node!==null) d = focus_node;
-	highlight_node = d;
+function loadChart() {
+  d3.json("data.json", function(error, graph) {
+    if (error) throw error;
+    const svg = d3.select('svg'),
+          width = +svg.attr('width'),
+          height = +svg.attr('height');
+      
+      const forceX = d3.forceX(width / 2).strength(0.4)
+      const forceY = d3.forceY(height / 2).strength(0.4)
+      
+      const simulation = d3.forceSimulation()
+      .nodes(graph.nodes)
+      .force('x', forceX)
+      .force('y',  forceY)
+      .force('link', d3.forceLink().id(d => d.id))
+      .force('link', d3.forceLink().distance("500"))
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(width / 2, height/2.5))
+      .on('tick', ticked);
 
-	if (highlight_color!="white")
-	{
-		text.style("opacity", function(o) {return isConnected(d, o) ? 1 : highlight_trans;});
-		images.style("opacity", function(o) {return isConnected(d, o) ? 1 : highlight_trans;});
-	}
-	images.style(towhite, function(o) {
-    	return isConnected(d, o) ? highlight_color : "white";});
-	circle.style(towhite, function(o) {
-    	return isConnected(d, o) ? highlight_color : "white";});
-	text.style("font-weight", function(o) {
-    	return isConnected(d, o) ? "bold" : "normal";});
-    link.style("stroke", function(o) {
-		return o.source.index == d.index || o.target.index == d.index ? highlight_color : ((isNumber(o.score) && o.score>=0)?color(o.score):default_link_color);});
-	link.style("opacity", function(o) {
-		return o.source.index == d.index || o.target.index == d.index ? 1 : highlight_trans;});		
+    simulation.force('link')
+      .links(graph.links);
 
+    let link = svg.selectAll('line')
+      .data(graph.links)
+      .enter().append('line');
 
-}
+    link  
+      .attr('class', 'link')
+      .style("stroke-width", function(d){ return checkFrequency(d.frequency1, d.frequency2, d.frequency3, d.frequency4, d.frequency5);})
+      .on( 'mouseover', function() {
+          // select element in current context
+          d3.select( this )
+              .style("stroke", "#64000d")
+          })    
+      .on( 'mouseout', function() {
+          // select element in current context
+          d3.select( this )
+              .style("stroke", "c1c1c1")
+          })    
+      .on('mouseover.tooltip', function(d) {
+          tooltip.transition()
+            .duration(300)
+            .style("opacity", .8);
+          tooltip.html("<b>Interaction Detail</b><br>" +
+                      d.source.firstname + " " + d.source.lastname +
+                      " & <br>" + d.target.firstname + " " + d.target.lastname +
+                      "<p/><br>" + 
+                      "Season 1: " + d.frequency1 +
+                      "<br>Season 2: " + d.frequency2 +
+                      "<br>Season 3: " + d.frequency3 + 
+                      "<br>Season 4: " + d.frequency4 +
+                      "<br>Season 5: " + d.frequency5 )
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
+        .on("mouseout.tooltip", function() {
+          tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+        })
+        .on('mouseout.fade', fade(1))
+        .on("mousemove", function() {
+          tooltip.style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        });
+  ;
 
+    let node = svg.selectAll('.node')
+      .data(graph.nodes)
+      .enter().append('g')
+      .attr('class', 'node')
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));;
 
-var setEvents = images
-          // Append hero text
-          .on( 'click', function (d) {
-              d3.select("h3").html (d.firstname + " " + d.lastname + " - <a href='index2.html'>view detail</a>"); 
+    node
+      .append('svg:image')
+      .attr('class', 'img')
+      .attr("xlink:href", function(d) { return d.img;})
+      .attr("height", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
+      .attr("width", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
+      .on( 'click', function (d) {
+              d3.select("#detail").html (d.firstname + " " + d.lastname + "<br> <a href='index2.html'>view detail</a>"); 
            })
 
-          .on( 'mouseenter', function() {
-            // select element in current context
-            d3.select( this )
+      .on( 'mouseover', function() {
+          // select element in current context
+          d3.select( this )
               .transition()
-              .attr("x", function(d) { return -60;})
-              .attr("y", function(d) { return -60;})
-              .attr("height", 100)
-			  .attr("width", 100);
+              .attr("height", "100")
+              .attr("width", "100");
+            })    
+      .on('mouseover.tooltip', function(d) {
+          tooltip.transition()
+            .duration(300)
+            .style("opacity", .8);
+          tooltip.html("Name: " + d.firstname + " " + d.lastname +
+                      "<p/>Speaking scene: <br>" + 
+                      "Season 1: " + d.influence1 +
+                      "<br>Season 2: " + d.influence2 +
+                      "<br>Season 3: " + d.influence3 + 
+                      "<br>Season 4: " + d.influence4 +
+                      "<br>Season 5: " + d.influence5 )
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
+        .on('mouseover.fade', fade(0.1))
+        .on( 'mouseout', function(){
+          updateChart(),
+          link
+            .transition()
+            .style("stroke", "c1c1c1"),
+          text.transition()
+            .duration(100)
+            .style("opacity", 0);
           })
-          // set back
-          .on( 'mouseleave', function() {
-            d3.select( this )
-              .transition()
-              .attr("x", function(d) { return -25;})
-              .attr("y", function(d) { return -25;})
-			  .attr("height", function(d){ return d.influence<10 ? 10 : d.influence;})
-			  .attr("width", function(d){ return d.influence<10 ? 10 : d.influence;});
-          });
-
- 	
- 	
-  zoom.on("zoom", function() {
-  
-    var stroke = nominal_stroke;
-    if (nominal_stroke*zoom.scale()>max_stroke) stroke = max_stroke/zoom.scale();
-    link.style("stroke-width",stroke);
-    circle.style("stroke-width",stroke);
-	   
-	var base_radius = nominal_base_node_size;
-    if (nominal_base_node_size*zoom.scale()>max_base_node_size) base_radius = max_base_node_size/zoom.scale();
-        circle.attr("d", d3.svg.symbol()
-        .size(function(d) { return Math.PI*Math.pow(size(d.size)*base_radius/nominal_base_node_size||base_radius,2); })
-        .type(function(d) { return d.type; }))
-		
-	//circle.attr("r", function(d) { return (size(d.size)*base_radius/nominal_base_node_size||base_radius); })
-	if (!text_center) text.attr("dx", function(d) { return (size(d.size)*base_radius/nominal_base_node_size||base_radius); });
-	
-	var text_size = nominal_text_size;
-    if (nominal_text_size*zoom.scale()>max_text_size) text_size = max_text_size/zoom.scale();
-    text.style("font-size",text_size + "px");
-
-	g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-	});
-	 
-  svg.call(zoom);	  
-	
-  resize();
-  //window.focus();
-  d3.select(window).on("resize", resize).on("keydown", keydown);
-	  
-  force.on("tick", function() {
-  	
-    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-    text.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-  
-    link.attr("x1", function(d) { return d.source.x; })
-      .attr("y1", function(d) { return d.source.y; })
-      .attr("x2", function(d) { return d.target.x; })
-      .attr("y2", function(d) { return d.target.y; });
-		
-    node.attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; });
-	});
-  
-  function resize() {
-    var width = window.innerWidth, height = window.innerHeight;
-	svg.attr("width", width).attr("height", height);
+      .on("mouseout.tooltip", function() {
+          tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+        })
+      .on('mouseout.fade', fade(1),)
+        .on("mousemove", function() {
+          tooltip.style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        });
+      
     
-	force.size([force.size()[0]+(width-w)/zoom.scale(),force.size()[1]+(height-h)/zoom.scale()]).resume();
-    w = width;
-	h = height;
-	}
-	
-	function keydown() {
-	if (d3.event.keyCode==32) {  force.stop();}
-	else if (d3.event.keyCode>=48 && d3.event.keyCode<=90 && !d3.event.ctrlKey && !d3.event.altKey && !d3.event.metaKey)
-	{
-  switch (String.fromCharCode(d3.event.keyCode)) {
-    case "C": keyc = !keyc; break;
-    case "S": keys = !keys; break;
-	case "T": keyt = !keyt; break;
-	case "R": keyr = !keyr; break;
-    case "X": keyx = !keyx; break;
-	case "D": keyd = !keyd; break;
-	case "L": keyl = !keyl; break;
-	case "M": keym = !keym; break;
-	case "H": keyh = !keyh; break;
-	case "1": key1 = !key1; break;
-	case "2": key2 = !key2; break;
-	case "3": key3 = !key3; break;
-	case "0": key0 = !key0; break;
+    node.append('text')
+      .attr("class", "text")
+      .attr('opacity', '0')
+      .attr('x', '0')
+      .attr('dy', '0')
+      .text(d => d.firstname);
+
+    var text = svg.selectAll(".text");
+
+    var character = [];
+    d3.selectAll('g.node')  //here's how you get all the nodes
+      .each(function(d) {
+        character.push(d.firstname+ " "+ d.lastname);
+    });
+
+    $( "#charFilter" ).autocomplete({
+      source: character
+    });
+
+
+    function ticked() {
+      link
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+      node
+        .attr('transform', d => `translate(${d.x},${d.y})`);
+    }
+  
+
+function dragstarted(d) {
+  if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x;
+  d.fy = d.y;
+}
+
+function dragged(d) {
+  d.fx = d3.event.x;
+  d.fy = d3.event.y;
+}
+
+function dragended(d) {
+  if (!d3.event.active) simulation.alphaTarget(0);
+  //d.fx = null;
+  //d.fy = null;
+}
+function releasenode(d) {
+    d.fx = null;
+    d.fy = null;
+}
+  
+  const linkedByIndex = {};
+  graph.links.forEach(d => {
+    linkedByIndex[`${d.source.index},${d.target.index}`] = 1;
+  });
+
+  function isConnected(a, b) {
+    return linkedByIndex[`${a.index},${b.index}`] || linkedByIndex[`${b.index},${a.index}`] || a.index === b.index;
   }
-  	
-  link.style("display", function(d) {
-				var flag  = vis_by_type(d.source.type)&&vis_by_type(d.target.type)&&vis_by_node_score(d.source.score)&&vis_by_node_score(d.target.score)&&vis_by_link_score(d.score);
-				linkedByIndex[d.source.index + "," + d.target.index] = flag;
-              return flag?"inline":"none";});
-  node.style("display", function(d) {
-				return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
-  text.style("display", function(d) {
-                return (key0||hasConnections(d))&&vis_by_type(d.type)&&vis_by_node_score(d.score)?"inline":"none";});
-				
-				if (highlight_node !== null)
-				{
-					if ((key0||hasConnections(highlight_node))&&vis_by_type(highlight_node.type)&&vis_by_node_score(highlight_node.score)) { 
-					if (focus_node!==null) set_focus(focus_node);
-					set_highlight(highlight_node);
-					}
-					else {exit_highlight();}
-				}
 
-}	
-}
- 
-});
+  function fade(opacity) {
+    return d => {
 
-function vis_by_type(type)
-{
-	switch (type) {
-	  case "circle": return keyc;
-	  case "square": return keys;
-	  case "triangle-up": return keyt;
-	  case "diamond": return keyr;
-	  case "cross": return keyx;
-	  case "triangle-down": return keyd;
-	  default: return true;
-}
-}
-function vis_by_node_score(score)
-{
-	if (isNumber(score))
-	{
-	if (score>=0.666) return keyh;
-	else if (score>=0.333) return keym;
-	else if (score>=0) return keyl;
-	}
-	return true;
+      node.style('opacity', function (o) {
+        const thisOpacity = isConnected(d, o) ? 1 : opacity;
+        this.setAttribute('fill-opacity', thisOpacity);
+        return thisOpacity;
+      });
+
+      text.style('opacity', function (o) {
+        const thisOpacity = isConnected(d, o) ? 1 : 0;
+        this.setAttribute('opacity', thisOpacity);
+      });
+      link.style('stroke', o => (o.source === d || o.target === d ? "#64000d" : ""));
+      link.style('stroke-opacity', o => (o.source === d || o.target === d ? 1 : opacity));
+    };
+  }
+  var sequentialScale = d3.scaleOrdinal(d3.schemeSet3)
+  .domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  
+})
 }
 
-function vis_by_link_score(score)
-{
-	if (isNumber(score))
-	{
-	if (score>=0.666) return key3;
-	else if (score>=0.333) return key2;
-	else if (score>=0) return key1;
-}
-	return true;
-}
+function updateChart(){
+  d3.json("data.json", function(error, graph) {
+    var svg = d3.select("#viz").transition();
+    
+    svg.selectAll('.img')
+      .transition() 
+      .attr("height", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
+      .attr("width", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
 
-function isNumber(n) {
-  return !isNaN(parseFloat(n)) && isFinite(n);
-}	
-
-function dragstart(d) {
-	d3.select(this).classed("fixed", d.fixed = true);
+  });
+      
 }
 
 </script>
