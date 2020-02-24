@@ -1,15 +1,32 @@
 body {
     margin:10px;
-    font-family: "Source Code Pro", Consolas, monaco, monospace; line-height: 110%; font-size: 16px; 
+    background-image: linear-gradient(black, #444F53);
+    font-family: "Source Code Pro", Consolas, monaco, monospace; line-height: 110%; font-size: 16px; color: #ffffff; 
   }
 
   text {
     font-family: sans-serif;
     pointer-events: none;
   }
-  h1 { font-size: 28px; margin: 10px 0; text-transform: uppercase; font-weight: normal; text-align: center;}
-  h2, h3 { font-size: 14px; margin: 5px 0 ; font-weight: normal; text-align: center;}
-  p { font-size: 12px;}
+  h1 {
+    font-size: 28px;
+    margin: 10px 0;
+    text-transform: uppercase;
+    font-weight: normal;
+    text-align: center;
+    color: #ffffff;
+  }
+  h2, h3 { 
+    font-size: 14px;
+    margin: 5px 0;
+    font-weight: normal;
+    text-align: center;
+    color: #ffffff;
+  }
+  p { 
+    font-size: 12px;
+    color: #ffffff;
+  }
 
   .link {
     stroke: #c1c1c1;

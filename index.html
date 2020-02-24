@@ -145,6 +145,64 @@ function checkDominance(inf1, inf2, inf3, inf4, inf5){
     return frequency;
   }
 
+<<<<<<< Updated upstream
+=======
+</script>
+
+<body>
+  <div class="row">
+    <div class="col-4">
+        <img src="GOT logo.png" class="img-fluid">
+    </div>
+
+    <div class="col-8">
+        <p>
+            This visualization shows the character interactions between characters in the television series Game of Thrones from Seasons 1 to 5. 
+            As characters are traveling a lot in the lands of Westeros and Essos, their relationships evolve over time and some characters that are close at the beginning are not in a relationship at all later in the show. 
+        </p>
+        <p>
+            Currently, you can read this visualization by seeing the characters that interact with others the most.
+        </p>
+    </div>
+  </div>
+  <div class="row">
+      <div class="col-3"style="padding:80px 50px 0px 30px">
+        <legend>Selected Character</legend>
+        <div id="detail" class="alert alert-info"></div>
+
+        <br><br>
+
+        <legend>Search: </legend>
+        <input id="charFilter" type="text" placeholder="... ">
+
+        <br><br><br>
+        
+        <fieldset class="widget" >
+          <legend>Filter: </legend>
+          <label for="checkseason-1">Season 1</label>
+          <input type="checkbox" id="checkseason-1" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-2">Season 2</label>
+          <input type="checkbox" id="checkseason-2" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-3">Season 3</label>
+          <input type="checkbox" id="checkseason-3" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-4">Season 4</label>
+          <input type="checkbox" id="checkseason-4" class="checkSeason" onclick="updateChart()"><br>
+          <label for="checkseason-5">Season 5</label>
+          <input type="checkbox" id="checkseason-5" class="checkSeason" onclick="updateChart()">
+        </fieldset>
+
+        <br><br>
+        <button onClick = "location.reload();">Reset All</button>
+      </div>
+      <div id="viz" class="col-9">
+        <svg width="960" height="690"></svg>
+      </div>
+  </div>
+</body>
+
+<script>
+
+>>>>>>> Stashed changes
 var color = d3.scaleOrdinal(d3.schemeSet3);
     color(0);
     color(1);
@@ -226,8 +284,70 @@ function loadChart() {
             })
         .on('mouseout.fade', fade(1))
         .on("mousemove", function() {
+<<<<<<< Updated upstream
             tooltip.style("left", (d3.event.pageX) + "px")
                 .style("top", (d3.event.pageY + 10) + "px");
+=======
+          tooltip.style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        });
+  ;
+
+    let node = svg.selectAll('.node')
+      .data(graph.nodes)
+      .enter().append('g')
+      .attr('class', 'node')
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));;
+
+    node
+      .append('svg:image')
+      .attr('class', 'img')
+      .attr("xlink:href", function(d) { return d.img;})
+      .attr("height", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
+      .attr("width", function(d){ return checkDominance(d.influence1,d.influence2,d.influence3,d.influence4,d.influence5)})
+      /*.on( 'click', function (d) {
+              d3.select("#detail").html (d.firstname + " " + d.lastname + "<br> <a href='index2.html'>view detail</a>"); 
+           }*/) 
+
+      .on( 'mouseover', function() {
+          // select element in current context
+          d3.select( this )
+              .transition()
+              .attr("height", "100")
+              .attr("width", "100");
+            })    
+      .on('mouseover.tooltip', function(d) {
+          tooltip.transition()
+            .duration(300)
+            .style("opacity", .8);
+          tooltip.html("Name: " + d.firstname + " " + d.lastname +
+                      "<p/>Speaking scene: <br>" + 
+                      "Season 1: " + d.influence1 +
+                      "<br>Season 2: " + d.influence2 +
+                      "<br>Season 3: " + d.influence3 + 
+                      "<br>Season 4: " + d.influence4 +
+                      "<br>Season 5: " + d.influence5 )
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
+        .on('mouseover.fade', fade(0.1))
+        .on( 'mouseout', function(){
+          updateChart(),
+          link
+            .transition()
+            .style("stroke", "c1c1c1"),
+          text.transition()
+            .duration(100)
+            .style("opacity", 0);
+          })
+      .on("mouseout.tooltip", function() {
+          tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+>>>>>>> Stashed changes
         })
         ;
 
