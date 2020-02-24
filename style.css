@@ -1,7 +1,10 @@
 body {
     margin:10px;
     background-image: linear-gradient(black, #444F53);
-    font-family: "Source Code Pro", Consolas, monaco, monospace; line-height: 110%; font-size: 16px; color: #ffffff; 
+    font-family: 'Lora' ;
+    line-height: 110%;
+    font-size: 16px;
+    color: #ffffff; 
   }
 
   text {
@@ -10,22 +13,20 @@ body {
   }
   h1 {
     font-size: 28px;
-    margin: 10px 0;
-    text-transform: uppercase;
     font-weight: normal;
     text-align: center;
     color: #ffffff;
+    font-family: 'Lora' ;
   }
   h2, h3 { 
-    font-size: 14px;
+    font-size: 18px;
     margin: 5px 0;
-    font-weight: normal;
-    text-align: center;
+    font-weight: bold;
     color: #ffffff;
   }
   p { 
     font-size: 12px;
-    color: #ffffff;
+    color: #00000;
   }
 
   .link {
@@ -50,4 +51,5 @@ body {
     border-width: 1px;
     box-shadow: 3px 3px 10px rgba(0, 0, 0, .5);
     pointer-events: none;
+    color: #000000;
   }
