@@ -80,7 +80,7 @@
         var splitName = txtName.split(' ');
         txtName = splitName[0];
         text.style("opacity", function (d) { return d.firstname.match(txtName) || d.lastname.match(txtName) ? "1" : "0" });
-        text.style("stroke", function (d) { return d.firstname.match(txtName) || d.lastname.match(txtName) ? "#046306" : ""; });
+        text.style("fill", function (d) { return d.firstname.match(txtName) || d.lastname.match(txtName) ? "#EAB64C" : ""; });
         node.attr("width", function (d) { return d.firstname.match(txtName) || d.lastname.match(txtName) ? "100" : ""; });
         node.attr("height", function (d) { return d.firstname.match(txtName) || d.lastname.match(txtName) ? "100" : ""; });
       }
